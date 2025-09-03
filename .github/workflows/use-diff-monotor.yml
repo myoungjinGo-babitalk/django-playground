@@ -1,0 +1,29 @@
+name: Use Reusable Diff Monitor
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+jobs:
+  call-diff-monitor:
+    uses: babitalk/babitalk_devops_cicd/.github/workflows/diff-monitor.yml@master
+    with:
+      repository_name: ${{ github.repository }}
+      current_commit: ${{ github.event.pull_request.head.sha }}
+      include_patterns: ${{ vars.INCLUDE_PATTERNS }}
+      exclude_patterns: ${{ vars.EXCLUDE_PATTERNS || '[]' }}
+      project_language: ${{ vars.PROJECT_LANGUAGE || '' }}
+      project_framework: ${{ vars.PROJECT_FRAMEWORK || '' }}
+      project_description: ${{ vars.PROJECT_DESCRIPTION || '' }}
+      bedrock_model: ${{ vars.BEDROCK_MODEL }}
+      branch: ${{ github.ref_name }}
+      pr_number: ${{ github.event.pull_request.number }}
+      event_type: ${{ github.event.action }}
+    secrets:
+      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+      LAMBDA_FUNCTION_NAME: ${{ secrets.LAMBDA_FUNCTION_NAME }}
