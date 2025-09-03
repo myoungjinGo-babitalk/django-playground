@@ -7,6 +7,14 @@ from .models import Post, Comment
 
 @pytest.fixture
 def client():
+    """
+    Django 테스트용 HTTP 클라이언트를 생성하여 반환합니다.
+    
+    테스트에서 HTTP 요청을 시뮬레이션하기 위한 django.test.Client 인스턴스를 반환합니다. 이 클라이언트는 CSRF 검사를 비활성화(enforce_csrf_checks=False)하여 테스트 편의성을 제공합니다.
+    
+    Returns:
+        django.test.Client: CSRF 검사 비활성화된 테스트 클라이언트 인스턴스
+    """
     from django.test import Client
 
     return Client(enforce_csrf_checks=False)
@@ -14,18 +22,44 @@ def client():
 
 @pytest.fixture
 def user():
+    """
+    테스트용 Django User 인스턴스를 생성하여 반환합니다.
+    
+    임의의 고유한 사용자명("testuser_<8hex>")과 고정 비밀번호("testpass123")로 데이터베이스에 사용자를 생성합니다. 주로 테스트 픽스처에서 인증/소유권 검증용으로 사용됩니다.
+    
+    Returns:
+        django.contrib.auth.models.User: 생성된 사용자 객체(데이터베이스에 저장됨).
+    """
     username = f"testuser_{uuid.uuid4().hex[:8]}"
     return User.objects.create_user(username=username, password="testpass123")
 
 
 @pytest.fixture
 def another_user():
+    """
+    다른 테스트 사용자를 생성하여 반환합니다.
+    
+    고유한 사용자명을 UUID 일부로 생성하고 비밀번호 "testpass123"으로 User 인스턴스를 생성합니다.
+    테스트에서 인증이 필요한 경우 소유권/권한 분기를 검증하기 위해 사용하세요.
+    
+    Returns:
+        django.contrib.auth.models.User: 생성된 활성 사용자 객체
+    """
     username = f"anotheruser_{uuid.uuid4().hex[:8]}"
     return User.objects.create_user(username=username, password="testpass123")
 
 
 @pytest.fixture
 def post(user):
+    """
+    지정된 사용자(user)를 작성자(author)로 하여 테스트용 Post 객체를 생성하고 반환합니다.
+    
+    Parameters:
+        user (django.contrib.auth.models.User): 새 게시물의 작성자 계정.
+    
+    Returns:
+        Post: 데이터베이스에 저장된 생성된 Post 인스턴스(타이틀은 "Test Post", 내용은 "Test content for the post").
+    """
     return Post.objects.create(
         title="Test Post", content="Test content for the post", author=user
     )
@@ -33,6 +67,15 @@ def post(user):
 
 @pytest.fixture
 def comment(post, user):
+    """
+    지정된 게시글(post)과 사용자(user)를 사용해 고정된 본문("Test comment")의 Comment 객체를 생성하여 반환합니다.
+    
+    post: 댓글을 달 대상인 Post 모델 인스턴스.
+    user: 댓글 작성자(User 모델 인스턴스).
+    
+    Returns:
+        생성된 Comment 모델 인스턴스.
+    """
     return Comment.objects.create(post=post, content="Test comment", author=user)
 
 
@@ -120,7 +163,9 @@ class TestPostAPI:
         assert post.content == "Updated content"
 
     def test_update_post_by_non_author(self, client, post, another_user):
-        """다른 사용자가 게시글 수정 시도"""
+        """
+        작성자가 아닌 사용자가 게시글 수정 요청을 보낼 때 서버가 403 Forbidden을 반환하는지 검증하는 테스트입니다.
+        """
         client.login(username=another_user.username, password="testpass123")
 
         updated_data = {"title": "Updated Post", "content": "Updated content"}
@@ -183,7 +228,13 @@ class TestCommentAPI:
         assert len(data) == 0
 
     def test_create_comment_authenticated(self, client, user):
-        """인증된 사용자 댓글 작성"""
+        """
+        인증된 사용자가 특정 게시물에 댓글을 생성하고 생성 성공(HTTP 201), 데이터베이스 카운트 증가 및 작성자 연결을 검증합니다.
+        
+        설명:
+        - 같은 사용자로 작성된 테스트용 게시물을 만들고 해당 사용자로 로그인한 뒤 댓글 생성 엔드포인트에 요청을 보냅니다.
+        - 응답이 201이며 Comment 테이블의 레코드 수가 1 증가했는지, 생성된 댓글의 내용과 작성자가 기대값과 일치하는지를 확인합니다.
+        """
         # 테스트용 포스트 생성 (같은 user로)
         post = Post.objects.create(
             title="Test Post for Comment", content="Test content", author=user
