@@ -1,0 +1,15 @@
+have_fun: false
+
+ignore_patterns:
+  - "tests/*"
+  - "migrations/*"
+
+code_review:
+  disable: false
+  comment_severity_threshold: medium
+  max_review_comments: 30
+  pull_request_opened:
+    help: true
+    summary: true
+    code_review: true
+    include_drafts: false

@@ -1,0 +1,25 @@
+language: "ko-KR"
+
+reviews:
+  profile: "assertive"
+  high_level_summary: true
+  request_changes_workflow: true
+  review_status: true
+  commit_status: true
+  fail_commit_status: false
+  collapse_walkthrough: false
+  changed_files_summary: true
+  sequence_diagrams: true
+
+auto_review:
+  enabled: true
+  drafts: false
+
+path_instructions:
+  - path: "**/*.py"
+    instructions: |
+      파이썬 코드 리뷰 시 다음 규칙을 확인해주세요:
+      1. 모든 함수와 클래스에는 docstring을 작성해야 합니다.
+      2. 변수와 함수명은 snake_case를 사용해야 합니다.
+      3. 클래스명은 CamelCase를 사용해야 합니다.
+      4. 들여쓰기는 반드시 4 spaces여야 합니다.
