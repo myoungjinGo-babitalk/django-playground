@@ -8,9 +8,21 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "django (>=5.2.3,<6.0.0)"
+    "django (>=5.2.3,<6.0.0)",
+    "djangorestframework",
+    "pytest",
+    "pytest-django"
 ]
 
+
+[tool.pytest.ini_options]
+python_files = "tests.py test_*.py *_tests.py"
+python_classes = "Test*"
+python_functions = "test_*"
+addopts = "--verbose --tb=short"
+markers = [
+    "django_db: mark test to use django database",
+]
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
